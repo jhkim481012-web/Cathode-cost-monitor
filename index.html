@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>양극소재 원가 모니터링 대시보드</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- ① 헤더 -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <h1 class="site-title">
+          <i class="fas fa-chart-line"></i>
+          양극소재 원가 모니터링 대시보드
+        </h1>
+        <p class="last-updated-wrap">
+          마지막 업데이트: <span id="last-updated">로딩 중…</span>
+        </p>
+      </div>
+      <button id="refresh-btn" class="btn-refresh">
+        <i class="fas fa-rotate-right"></i> 새로고침
+      </button>
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <!-- ② 환율 카드 (전체 너비) -->
+    <section class="section-exchange">
+      <div class="card card-exchange" id="card-exchange-rate">
+        <div class="card-label">
+          <i class="fas fa-won-sign"></i> 환율
+          <span class="card-sublabel">USD / KRW</span>
+        </div>
+        <div class="price-row">
+          <span class="price-large" id="val-rate">--</span>
+          <span class="price-unit">원</span>
+          <span class="change-badge" id="val-rate-change">--</span>
+        </div>
+        <div class="avg-row">
+          <span class="avg-item">
+            당월 평균&nbsp;<strong id="val-rate-avg-cur">--</strong>
+          </span>
+          <span class="avg-sep">|</span>
+          <span class="avg-item">
+            전월 평균&nbsp;<strong id="val-rate-avg-prev">--</strong>
+          </span>
+          <span class="avg-sep">|</span>
+          <span class="avg-item ref-date">
+            기준일&nbsp;<span id="val-rate-date">--</span>
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ③ 광물 카드 5개 -->
+    <section class="section-minerals">
+
+      <!-- 수산화리튬 -->
+      <div class="card mineral-card" id="card-lioh" data-key="lioh">
+        <div class="mineral-header">
+          <div class="mineral-name-group">
+            <span class="mineral-name">수산화리튬</span>
+            <span class="mineral-unit">USD/톤</span>
+          </div>
+        </div>
+        <div class="price-large" id="val-price-lioh">--</div>
+        <div class="change-badge neutral" id="val-change-lioh">--</div>
+        <div class="ref-date">기준일&nbsp;<span id="val-date-lioh">--</span></div>
+        <div class="avg-row">
+          <span class="avg-item">당월&nbsp;<strong id="val-avg-cur-lioh">--</strong></span>
+          <span class="avg-sep">|</span>
+          <span class="avg-item">전월&nbsp;<strong id="val-avg-prev-lioh">--</strong></span>
+        </div>
+      </div>
+
+      <!-- 니켈 -->
+      <div class="card mineral-card" id="card-nickel" data-key="nickel">
+        <div class="mineral-header">
+          <div class="mineral-name-group">
+            <span class="mineral-name">니켈</span>
+            <span class="mineral-unit">USD/톤</span>
+          </div>
+        </div>
+        <div class="price-large" id="val-price-nickel">--</div>
+        <div class="change-badge neutral" id="val-change-nickel">--</div>
+        <div class="ref-date">기준일&nbsp;<span id="val-date-nickel">--</span></div>
+        <div class="avg-row">
+          <span class="avg-item">당월&nbsp;<strong id="val-avg-cur-nickel">--</strong></span>
+          <span class="avg-sep">|</span>
+          <span class="avg-item">전월&nbsp;<strong id="val-avg-prev-nickel">--</strong></span>
+        </div>
+      </div>
+
+      <!-- 코발트 -->
+      <div class="card mineral-card" id="card-cobalt" data-key="cobalt">
+        <div class="mineral-header">
+          <div class="mineral-name-group">
+            <span class="mineral-name">코발트</span>
+            <span class="mineral-unit">USD/톤</span>
+          </div>
+        </div>
+        <div class="price-large" id="val-price-cobalt">--</div>
+        <div class="change-badge neutral" id="val-change-cobalt">--</div>
+        <div class="ref-date">기준일&nbsp;<span id="val-date-cobalt">--</span></div>
+        <div class="avg-row">
+          <span class="avg-item">당월&nbsp;<strong id="val-avg-cur-cobalt">--</strong></span>
+          <span class="avg-sep">|</span>
+          <span class="avg-item">전월&nbsp;<strong id="val-avg-prev-cobalt">--</strong></span>
+        </div>
+      </div>
+
+      <!-- 알루미늄 -->
+      <div class="card mineral-card" id="card-aluminium" data-key="aluminium">
+        <div class="mineral-header">
+          <div class="mineral-name-group">
+            <span class="mineral-name">알루미늄</span>
+            <span class="mineral-unit">USD/톤</span>
+          </div>
+        </div>
+        <div class="price-large" id="val-price-aluminium">--</div>
+        <div class="change-badge neutral" id="val-change-aluminium">--</div>
+        <div class="ref-date">기준일&nbsp;<span id="val-date-aluminium">--</span></div>
+        <div class="avg-row">
+          <span class="avg-item">당월&nbsp;<strong id="val-avg-cur-aluminium">--</strong></span>
+          <span class="avg-sep">|</span>
+          <span class="avg-item">전월&nbsp;<strong id="val-avg-prev-aluminium">--</strong></span>
+        </div>
+      </div>
+
+      <!-- 망간 (수동입력) -->
+      <div class="card mineral-card manganese-card" id="card-manganese" data-key="manganese">
+        <div class="mineral-header">
+          <div class="mineral-name-group">
+            <span class="mineral-name">망간</span>
+            <span class="mineral-unit">USD/dmtu</span>
+            <span class="badge-manual">수동입력</span>
+          </div>
+          <button class="btn-input" id="manganese-input-btn" title="망간 가격 입력">
+            <i class="fas fa-pencil"></i> 입력
+          </button>
+        </div>
+        <div class="price-large" id="val-price-manganese">--</div>
+        <div class="change-badge neutral" id="val-change-manganese">--</div>
+        <div class="ref-date">기준일&nbsp;<span id="val-date-manganese">--</span></div>
+        <div class="avg-row">
+          <span class="avg-item">당월&nbsp;<strong id="val-avg-cur-manganese">--</strong></span>
+          <span class="avg-sep">|</span>
+          <span class="avg-item">전월&nbsp;<strong id="val-avg-prev-manganese">--</strong></span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ⑤ 그래프 섹션 -->
+    <section class="section-charts">
+
+      <!-- 환율 차트 -->
+      <div class="card chart-card" id="chart-card-exchange-rate">
+        <div class="chart-header">
+          <span class="chart-title">환율 <span class="chart-unit">(USD/KRW)</span></span>
+          <div class="period-tabs" data-chart="exchange-rate">
+            <button class="tab active" data-days="7">7일</button>
+            <button class="tab" data-days="30">30일</button>
+            <button class="tab" data-days="90">90일</button>
+            <button class="tab" data-days="180">180일</button>
+            <button class="tab" data-days="365">365일</button>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="chart-exchange-rate"></canvas>
+        </div>
+      </div>
+
+      <!-- 수산화리튬 차트 -->
+      <div class="card chart-card" id="chart-card-lioh">
+        <div class="chart-header">
+          <span class="chart-title">수산화리튬 <span class="chart-unit">(USD/톤)</span></span>
+          <div class="period-tabs" data-chart="lioh">
+            <button class="tab active" data-days="7">7일</button>
+            <button class="tab" data-days="30">30일</button>
+            <button class="tab" data-days="90">90일</button>
+            <button class="tab" data-days="180">180일</button>
+            <button class="tab" data-days="365">365일</button>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="chart-lioh"></canvas>
+        </div>
+      </div>
+
+      <!-- 니켈 차트 -->
+      <div class="card chart-card" id="chart-card-nickel">
+        <div class="chart-header">
+          <span class="chart-title">니켈 <span class="chart-unit">(USD/톤)</span></span>
+          <div class="period-tabs" data-chart="nickel">
+            <button class="tab active" data-days="7">7일</button>
+            <button class="tab" data-days="30">30일</button>
+            <button class="tab" data-days="90">90일</button>
+            <button class="tab" data-days="180">180일</button>
+            <button class="tab" data-days="365">365일</button>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="chart-nickel"></canvas>
+        </div>
+      </div>
+
+      <!-- 코발트 차트 -->
+      <div class="card chart-card" id="chart-card-cobalt">
+        <div class="chart-header">
+          <span class="chart-title">코발트 <span class="chart-unit">(USD/톤)</span></span>
+          <div class="period-tabs" data-chart="cobalt">
+            <button class="tab active" data-days="7">7일</button>
+            <button class="tab" data-days="30">30일</button>
+            <button class="tab" data-days="90">90일</button>
+            <button class="tab" data-days="180">180일</button>
+            <button class="tab" data-days="365">365일</button>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="chart-cobalt"></canvas>
+        </div>
+      </div>
+
+      <!-- 알루미늄 차트 -->
+      <div class="card chart-card" id="chart-card-aluminium">
+        <div class="chart-header">
+          <span class="chart-title">알루미늄 <span class="chart-unit">(USD/톤)</span></span>
+          <div class="period-tabs" data-chart="aluminium">
+            <button class="tab active" data-days="7">7일</button>
+            <button class="tab" data-days="30">30일</button>
+            <button class="tab" data-days="90">90일</button>
+            <button class="tab" data-days="180">180일</button>
+            <button class="tab" data-days="365">365일</button>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="chart-aluminium"></canvas>
+        </div>
+      </div>
+
+      <!-- 망간 차트 -->
+      <div class="card chart-card" id="chart-card-manganese">
+        <div class="chart-header">
+          <span class="chart-title">망간 <span class="chart-unit">(USD/dmtu)</span></span>
+          <div class="period-tabs" data-chart="manganese">
+            <button class="tab active" data-days="7">7일</button>
+            <button class="tab" data-days="30">30일</button>
+            <button class="tab" data-days="90">90일</button>
+            <button class="tab" data-days="180">180일</button>
+            <button class="tab" data-days="365">365일</button>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="chart-manganese"></canvas>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- ④ 망간 입력 모달 -->
+  <div id="modal-overlay" class="modal-overlay hidden"
+       role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-box">
+
+      <div class="modal-header">
+        <h2 id="modal-title" class="modal-title">
+          <i class="fas fa-pencil"></i> 망간 가격 입력
+        </h2>
+        <button class="modal-close-x" id="modal-close-x" aria-label="닫기">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <form id="manganese-form" novalidate>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="modal-date">기준일</label>
+              <input type="date" id="modal-date" name="date" required>
+            </div>
+            <div class="form-group">
+              <label for="modal-price">가격 <span class="label-unit">(USD/dmtu)</span></label>
+              <input type="number" id="modal-price" name="price"
+                     step="0.01" min="0" placeholder="예: 4.80" required>
+            </div>
+            <div class="form-group">
+              <label for="modal-source">출처</label>
+              <input type="text" id="modal-source" name="source"
+                     placeholder="예: KOMIS" maxlength="40">
+            </div>
+          </div>
+        </form>
+
+        <h3 class="modal-section-title">최근 입력 이력</h3>
+        <div class="modal-table-wrap">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>날짜</th>
+                <th>가격</th>
+                <th>출처</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="modal-history-tbody">
+              <tr class="no-data-row">
+                <td colspan="4">이력 없음</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-cancel" id="modal-cancel">취소</button>
+        <button class="btn btn-save" id="modal-save">
+          <i class="fas fa-floppy-disk"></i> 저장
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
